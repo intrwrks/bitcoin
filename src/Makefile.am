@@ -139,6 +139,7 @@ BITCOIN_CORE_H = \
   utilmoneystr.h \
   utilstrencodings.h \
   utiltime.h \
+  utilvanikey.h \
   validationinterface.h \
   version.h \
   wallet/crypter.h \
@@ -283,6 +284,7 @@ libbitcoin_util_a_SOURCES = \
   utilmoneystr.cpp \
   utilstrencodings.cpp \
   utiltime.cpp \
+  utilvanikey.cpp \
   $(BITCOIN_CORE_H)
 
 if GLIBC_BACK_COMPAT

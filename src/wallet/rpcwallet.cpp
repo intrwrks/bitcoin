@@ -14,6 +14,7 @@
 #include "timedata.h"
 #include "util.h"
 #include "utilmoneystr.h"
+#include "utilvanikey.h"
 #include "wallet.h"
 #include "walletdb.h"
 
@@ -433,6 +434,53 @@ Value sendtoaddress(const Array& params, bool fHelp)
     SendMoney(address.Get(), nAmount, fSubtractFeeFromAmount, wtx);
 
     return wtx.GetHash().GetHex();
+}
+
+Value sendtovanikey(const Array& params, bool fHelp)
+{
+    if (fHelp || params.size() < 2 || params.size() > 5)
+        throw runtime_error(
+            "sendtovanikey \"vanikeyname\" amount ( \"comment\" \"comment-to\" subtractfeefromamount )\n"
+            "\nSend an amount to a given VaniKey name. The amount is a real and is rounded to the nearest 0.00000001\n"
+            + HelpRequiringPassphrase() +
+            "\nArguments:\n"
+            "1. \"vanikeyname\"  (string, required) The VaniKey name to send to.\n"
+            "2. \"amount\"      (numeric, required) The amount in btc to send. eg 0.1\n"
+            "3. \"comment\"     (string, optional) A comment used to store what the transaction is for. \n"
+            "                             This is not part of the transaction, just kept in your wallet.\n"
+            "4. \"comment-to\"  (string, optional) A comment to store the name of the person or organization \n"
+            "                             to which you're sending the transaction. This is not part of the \n"
+            "                             transaction, just kept in your wallet.\n"
+            "5. subtractfeefromamount  (boolean, optional, default=false) The fee will be deducted from the amount being sent.\n"
+            "                             The recipient will receive less bitcoins than you enter in the amount field.\n"
+            "\nResult:\n"
+            "\"transactionid\"  (string) The transaction id.\n"
+            "\nExamples:\n"
+            + HelpExampleCli("sendtovanikey", "\"mrsmith\" 0.1")
+            + HelpExampleCli("sendtovanikey", "\"mrsmith+dontaion\" 0.1 \"donation\" \"Mr. Smith\"")
+            + HelpExampleCli("sendtovanikey", "\"mrsmith\" 0.1 \"\" \"\" true")
+            + HelpExampleRpc("sendtovanikey", "\"mrsmith+donation\", 0.1, \"donation\", \"Mr. Smith\"")
+        );
+    
+    std::string strHash;
+    bool found = VKeyGetName(params[0].get_str(), strHash);
+    if (!found) {
+        throw runtime_error("VaniKey Name does not have a bitcoin mapping.");
+    }
+    
+    // get the new params to send to the address hash
+    Array pArray;
+    bool first = true;
+    BOOST_FOREACH(const Value& v, params) {
+        if (first) {
+            pArray.push_back(strHash);
+            first = false;
+        } else {
+            pArray.push_back(v);
+        }
+    }
+    
+    return sendtoaddress(pArray, fHelp);
 }
 
 Value listaddressgroupings(const Array& params, bool fHelp)

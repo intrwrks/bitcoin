@@ -12,6 +12,7 @@
 #include "rpcserver.h"
 #include "timedata.h"
 #include "util.h"
+#include "utilvanikey.h"
 #ifdef ENABLE_WALLET
 #include "wallet/wallet.h"
 #include "wallet/walletdb.h"
@@ -394,4 +395,29 @@ Value setmocktime(const Array& params, bool fHelp)
     SetMockTime(params[0].get_int64());
 
     return Value::null;
+}
+
+Value lookupvanikey(const Array& params, bool fHelp)
+{
+    if (fHelp || params.size() != 1)
+        throw runtime_error(
+            "lookupvanikey \"vanikeyname\"\n"
+            "\nReturn address for the provided VaniKey name.\n"
+            "\nArguments:\n"
+            "1. \"vanikeyname\"     (string, required) The VaniKey name you want to check\n"
+            "\nResult:\n"
+            "\"bitcoinaddress\"  (string) the bitcoin address associated with this VaniKey\n"
+            "\nExamples:\n"
+            + HelpExampleCli("lookupvanikey", "\"mrsmith\"")
+            + HelpExampleCli("lookupvanikey", "\"mrsmith+dontaion\"")
+            + HelpExampleRpc("lookupvanikey", "\"mrsmith\"")
+        );
+    
+    std::string strHash;
+    bool found = VKeyGetName(params[0].get_str(), strHash);
+    if (!found) {
+        throw runtime_error("VaniKey Name does not have a bitcoin mapping.");
+    }
+    
+    return strHash;
 }
