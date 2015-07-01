@@ -14,11 +14,11 @@
 
 using namespace std;
 
-std::string VKeyHTTPGet(const std::string& strPath) {
+std::string VKeyHTTPGet(const string& strHost, const string& strPath) {
     ostringstream s;
     s << "GET " << strPath << " HTTP/1.1\r\n"
       << "User-Agent: bitcoin-json-rpc/" << FormatFullVersion() << "\r\n"
-      << "Host: vk-prod.elasticbeanstalk.com\r\n"
+      << "Host: " << strHost << "\r\n"
       << "Content-Type: application/json\r\n"
       << "Connection: close\r\n"
       << "Accept: application/json\r\n\r\n";
@@ -51,6 +51,7 @@ bool VKeyGetName(const string& name, string& hashRet) {
     // pull the alias
     string strName;
     string strAlias;
+    string strHost = "api.vanikey.com";
     size_t found = name.find("+");
     if (found == string::npos) {
         strName = url_encode(name + "+default");
@@ -62,12 +63,12 @@ bool VKeyGetName(const string& name, string& hashRet) {
     
     // send request to vanikey server
     boost::asio::ip::tcp::iostream stream;
-    stream.connect("vk-prod.elasticbeanstalk.com", "80");
+    stream.connect(strHost, "80");
     if (!stream) {
         return false;
     }
      
-    string strGet = VKeyHTTPGet("/mappings/" + strName + "/btc");
+    string strGet = VKeyHTTPGet(strHost, "/mappings/" + strName + "/btc");
     stream << strGet << flush;
     
     // Receive HTTP reply status

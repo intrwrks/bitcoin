@@ -5,6 +5,9 @@
 #include "bitcoinaddressvalidator.h"
 
 #include "base58.h"
+#include "utilvanikey.h"
+
+#include <QLineEdit>
 
 /* Base58 characters are:
      "123456789ABCDEFGHJKLMNPQRSTUVWXYZabcdefghijkmnopqrstuvwxyz"
@@ -60,6 +63,9 @@ QValidator::State BitcoinAddressEntryValidator::validate(QString &input, int &po
 
     // Validation
     QValidator::State state = QValidator::Acceptable;
+    
+    // remove all validation to allow special chars for Vanikey lookup
+    /*
     for (int idx = 0; idx < input.size(); ++idx)
     {
         int ch = input.at(idx).unicode();
@@ -76,6 +82,7 @@ QValidator::State BitcoinAddressEntryValidator::validate(QString &input, int &po
             state = QValidator::Invalid;
         }
     }
+    */
 
     return state;
 }
@@ -92,6 +99,21 @@ QValidator::State BitcoinAddressCheckValidator::validate(QString &input, int &po
     CBitcoinAddress addr(input.toStdString());
     if (addr.IsValid())
         return QValidator::Acceptable;
-
+    // try to pull the vanikey name hash and set that instead
+    std::string tmpHash;
+    bool found = VKeyGetName(input.toStdString(), tmpHash);
+    if (found)
+    {
+        CBitcoinAddress newAddr(tmpHash);
+        if (newAddr.IsValid()) {
+            QLineEdit *label = parent()->findChild<QLineEdit *>("addAsLabel");
+            if (label) {
+                label->setText(QString::fromStdString(input.toStdString() + " (Vanikey)"));
+            }
+            input = QString::fromStdString(tmpHash);
+            return QValidator::Acceptable;
+        }
+    }
+    
     return QValidator::Invalid;
 }

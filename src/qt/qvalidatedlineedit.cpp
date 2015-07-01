@@ -91,10 +91,12 @@ void QValidatedLineEdit::checkValidity()
         {
             QString address = text();
             int pos = 0;
-            if (checkValidator->validate(address, pos) == QValidator::Acceptable)
+            if (checkValidator->validate(address, pos) == QValidator::Acceptable) {
+                setText(address);
                 setValid(true);
-            else
+            } else {
                 setValid(false);
+            }
         }
     }
     else
